@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="sound">../assets/images/sound.png</file>
+        <file alias="icon">../assets/images/icon.png</file>
+    </qresource>
+    <qresource prefix="/i18n">
+        <file alias="zh_CN">i18n/iciba_zh_CN.qm</file>
+    </qresource>
+</RCC>
