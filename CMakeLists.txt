@@ -11,3 +11,4 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_FLSGS "-03 -Wall -Wextra")
 
 add_subdirectory(src)
+add_subdirectory(package)
