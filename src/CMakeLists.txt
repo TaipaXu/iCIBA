@@ -1,15 +1,32 @@
-cmake_minimum_required(VERSION 3.12)
+find_package(Qt6 REQUIRED COMPONENTS Core Network)
 
-project(iciba VERSION 0.1.0 LANGUAGES CXX)
+configure_file(./config.hpp.in ./config.hpp)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+set(TARGET iciba)
+set(SOURCES
+        main.cpp
+        core.hpp
+        core.cpp
 
-configure_file(./config.h.in ./config.h)
+        models/wordresult.hpp
+        models/sentenceresult.hpp
 
-add_subdirectory(cli)
-add_subdirectory(gui)
+        network.hpp
+        network.cpp
+
+        utils/baseprint.hpp
+        utils/baseprint.cpp
+        utils/terminalprint.hpp
+        utils/terminalprint.cpp
+
+        errors/systemerror.hpp
+)
+
+add_executable(
+    ${TARGET}
+    ${SOURCES}
+)
+
+target_link_libraries(${TARGET} PUBLIC
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network)
