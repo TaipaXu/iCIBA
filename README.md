@@ -17,7 +17,7 @@ $ sudo apt-get install iciba_0.2.0_x64.deb
 $ git clone https://github.com/TaipaXu/iCIBA.git && cd iCIBA
 $ mkdir build && cd build
 $ cmake ..
-$ make
+$ make -j$(nproc)
 ```
 
 ## Usage
