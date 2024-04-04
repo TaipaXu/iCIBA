@@ -1,6 +1,8 @@
 #include "./terminalprint.hpp"
 #include <QObject>
 #include <sstream>
+#include <format>
+#include <vector>
 
 const std::map<TerminalPrint::FgColor, std::string> TerminalPrint::fgColors{
     {FgColor::Black, "\033[30m"},
@@ -51,70 +53,71 @@ std::string TerminalPrint::getNetworkParseErrorStr()
 
 std::string TerminalPrint::getWordStr()
 {
-    std::ostringstream stringStream;
-    stringStream << color(wordResult.word, FgColor::Green) << BREAK_LINE;
+    std::string result = std::format("{}{}", color(wordResult.word, FgColor::Green), BREAK_LINE);
     const std::string pronunciation = getPronunciation();
-    if (pronunciation.length() > 0)
+    if (!pronunciation.empty())
     {
-        stringStream << pronunciation << BREAK_LINE;
+        result += std::format("{}{}", pronunciation, BREAK_LINE);
     }
     const std::string meanings = getMeanings();
-    if (meanings.length() > 0)
+    if (!meanings.empty())
     {
-        stringStream << meanings << BREAK_LINE;
+        result += std::format("{}{}", meanings, BREAK_LINE);
     }
-    return stringStream.str();
+    return result;
 }
 
 std::string TerminalPrint::getSentenceStr()
 {
-    std::ostringstream stringStream;
-    stringStream << sentenceResult.sentence.toStdString()
-                 << BREAK_LINE
-                 << color(sentenceResult.translation, TerminalPrint::FgColor::Green)
-                 << BREAK_LINE;
-    return stringStream.str();
+    const std::string result = std::format("{}{}{}{}",
+                                           sentenceResult.sentence.toStdString(),
+                                           BREAK_LINE,
+                                           color(sentenceResult.translation, TerminalPrint::FgColor::Green),
+                                           BREAK_LINE);
+    return result;
 }
 
 std::string TerminalPrint::getPronunciation()
 {
-    std::ostringstream stringStream;
+    std::string result = "";
     if (!wordResult.pronunciation.en.isEmpty())
     {
-        stringStream << QObject::tr("en").toStdString() + "[" + color(wordResult.pronunciation.en.toStdString(), FgColor::Green) + "]";
+        result += std::format("{}[{}]",
+                              QObject::tr("en").toStdString(),
+                              color(wordResult.pronunciation.en, FgColor::Green));
     }
     if (!wordResult.pronunciation.en.isEmpty() && !wordResult.pronunciation.am.isEmpty())
     {
-        stringStream << INDENT;
+        result += INDENT;
     }
     if (!wordResult.pronunciation.am.isEmpty())
     {
-        stringStream << QObject::tr("us").toStdString() + "[" + color(wordResult.pronunciation.am.toStdString(), FgColor::Green) + "]";
+        result += std::format("{}[{}]",
+                              QObject::tr("us").toStdString(),
+                              color(wordResult.pronunciation.am, FgColor::Green));
     }
-    return stringStream.str();
+    return result;
 }
 
 std::string TerminalPrint::getMeanings()
 {
-    QStringList list;
-    std::transform(wordResult.meanings.begin(), wordResult.meanings.end(), std::back_inserter(list), [](const Model::WordResult::Meaning &meaning) {
-        return QString{"%1 %2"}
-            .arg(color(meaning.part, FgColor::Green).data())
-            .arg(meaning.means.join("; "));
-    });
-    QString meanings{list.join(BREAK_LINE.data())};
+    std::vector<std::string> list;
+    std::transform(wordResult.meanings.begin(), wordResult.meanings.end(), std::back_inserter(list),
+                   [this](const Model::WordResult::Meaning &meaning) {
+                       return std::format("{} {}", color(meaning.part, FgColor::Green), meaning.means.join("; ").toStdString());
+                   });
 
-    return meanings.toStdString();
+    std::string meanings = std::accumulate(std::next(list.begin()), list.end(), list.begin() != list.end() ? list.front() : "",
+                                           [this](const std::string &a, const std::string &b) {
+                                               return a + BREAK_LINE + b;
+                                           });
+
+    return meanings;
 }
 
 std::string TerminalPrint::color(const std::string &str, const FgColor &fgColor, const BgColor &bgColor)
 {
-    std::string result{""};
-    result += fgColors.at(fgColor);
-    result += bgColors.at(bgColor);
-    result += str;
-    result += COLOR_CLOSE;
-    return result;
+    return std::format("{}{}{}{}", fgColors.at(fgColor), bgColors.at(bgColor), str, COLOR_CLOSE);
 }
 
 std::string TerminalPrint::color(const QString &str, const FgColor &fgColor, const BgColor &bgColor)
@@ -124,10 +127,7 @@ std::string TerminalPrint::color(const QString &str, const FgColor &fgColor, con
 
 std::string TerminalPrint::getErrorStr(const std::string &str)
 {
-    std::ostringstream stringStream;
-    stringStream << color(str, TerminalPrint::FgColor::Red)
-                 << BREAK_LINE;
-    return stringStream.str();
+    return std::format("{}{}", color(str, TerminalPrint::FgColor::Red), BREAK_LINE);
 }
 
 std::string TerminalPrint::getErrorStr(const QString &str)
