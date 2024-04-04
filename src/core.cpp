@@ -1,5 +1,4 @@
 #include "./core.hpp"
-#include <sstream>
 #include <iostream>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
