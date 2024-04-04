@@ -1,17 +1,17 @@
 # iCIBA
 
-A command-line tool of iCIBA for Linux.
+Linux下的iCIBA命令行工具。
 
-English | [中文](./README_ZH.md)
+[English](./README.md) | 中文
 
-## Installation
+## 安装
 
 ```sh
 $ wget https://github.com/TaipaXu/iCIBA/releases/download/v0.2.0/iciba_0.2.0_x64.deb
 $ sudo apt-get install iciba_0.2.0_x64.deb
 ```
 
-## Compiling
+## 编译
 
 ```sh
 $ git clone https://github.com/TaipaXu/iCIBA.git && cd iCIBA
@@ -20,7 +20,7 @@ $ cmake ..
 $ make
 ```
 
-## Usage
+## 使用方法
 
 ```sh
 $ iciba miss
@@ -56,6 +56,6 @@ How I miss you!
 
 ![sentence](./sentence.gif)
 
-# License
+# 许可证
 
 [GPL-3.0](LICENSE)
