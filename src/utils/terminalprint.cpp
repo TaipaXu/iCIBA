@@ -104,7 +104,14 @@ std::string TerminalPrint::getMeanings()
     std::vector<std::string> list;
     std::transform(wordResult.meanings.begin(), wordResult.meanings.end(), std::back_inserter(list),
                    [this](const Model::WordResult::Meaning &meaning) {
-                       return std::format("{} {}", color(meaning.part, FgColor::Green), meaning.means.join("; ").toStdString());
+                       if (meaning.part.isEmpty())
+                       {
+                           return std::format("{}", meaning.means.join("; ").toStdString());
+                       }
+                       else [[likely]]
+                       {
+                           return std::format("{} {}", color(meaning.part, FgColor::Green), meaning.means.join("; ").toStdString());
+                       }
                    });
 
     std::string meanings = std::accumulate(std::next(list.begin()), list.end(), list.begin() != list.end() ? list.front() : "",
