@@ -38,6 +38,8 @@ v. 漏掉; 错过（机会）; 思念; 没遇到
 复数: misses  第三人称: misses  过去式: missed  过去分词: missed  现在分词: missing
 ```
 
+![word](./word.gif)
+
 ```sh
 $ iciba How I miss you!
 How I miss you!
@@ -49,6 +51,8 @@ $ iciba -q How I miss you!
 How I miss you!
 我多么想念你！
 ```
+
+![sentence](./sentence.gif)
 
 # License
 
