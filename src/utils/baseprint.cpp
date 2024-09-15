@@ -18,7 +18,7 @@ std::string BasePrint::getStr() const
     {
         return getWordStr();
     }
-    else if (type == Type::Sentence)
+    else
     {
         return getSentenceStr();
     }
