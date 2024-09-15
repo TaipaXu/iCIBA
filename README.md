@@ -7,8 +7,8 @@ English | [中文](./README_ZH.md)
 ## Installation
 
 ```sh
-wget https://github.com/TaipaXu/iCIBA/releases/download/v0.2.0/iciba_0.2.0_x64.deb
-sudo apt-get install iciba_0.2.0_x64.deb
+wget https://github.com/TaipaXu/iCIBA/releases/download/v0.3.0/iciba_0.3.0_x64.deb
+sudo apt-get install iciba_0.3.0_x64.deb
 ```
 
 ## Compiling
