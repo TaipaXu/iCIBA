@@ -1,10 +1,12 @@
 #pragma once
 
+#include <string>
+
 namespace Model
 {
     struct SentenceResult
     {
-        QString sentence;
-        QString translation;
+        std::string sentence;
+        std::string translation;
     };
 } // namespace Model

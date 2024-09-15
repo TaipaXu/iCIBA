@@ -1,8 +1,15 @@
 #include "./terminalprint.hpp"
-#include <QObject>
-#include <sstream>
-#include <format>
+#include <ranges>
 #include <vector>
+#include <numeric>
+#include <algorithm>
+#include <sstream>
+#ifdef ENABLE_FORMAT_SUPPORT
+#include <format>
+#else
+#include <sstream>
+#endif
+#include <boost/algorithm/string/join.hpp>
 
 const std::map<TerminalPrint::FgColor, std::string> TerminalPrint::fgColors{
     {FgColor::Black, "\033[30m"},
@@ -41,17 +48,8 @@ TerminalPrint::TerminalPrint(const Model::SentenceResult &sentenceResult)
 {
 }
 
-std::string TerminalPrint::getNetworkErrorStr()
-{
-    return getErrorStr(BasePrint::getNetworkErrorStr());
-}
-
-std::string TerminalPrint::getNetworkParseErrorStr()
-{
-    return getErrorStr(BasePrint::getNetworkParseErrorStr());
-}
-
-std::string TerminalPrint::getWordStr()
+#ifdef ENABLE_FORMAT_SUPPORT
+std::string TerminalPrint::getWordStr() const
 {
     std::string result = std::format("{}{}", color(wordResult.word, FgColor::Green), BREAK_LINE);
     const std::string pronunciation = getPronunciation();
@@ -66,78 +64,150 @@ std::string TerminalPrint::getWordStr()
     }
     return result;
 }
+#else
+std::string TerminalPrint::getWordStr() const
+{
+    std::ostringstream result;
+    result << color(wordResult.word, FgColor::Green) << BREAK_LINE;
+    const std::string pronunciation = getPronunciation();
+    if (!pronunciation.empty())
+    {
+        result << pronunciation << BREAK_LINE;
+    }
+    const std::string meanings = getMeanings();
+    if (!meanings.empty())
+    {
+        result << meanings << BREAK_LINE;
+    }
+    return result.str();
+}
+#endif
 
-std::string TerminalPrint::getSentenceStr()
+#ifdef ENABLE_FORMAT_SUPPORT
+std::string TerminalPrint::getSentenceStr() const
 {
     const std::string result = std::format("{}{}{}{}",
-                                           sentenceResult.sentence.toStdString(),
+                                           sentenceResult.sentence,
                                            BREAK_LINE,
                                            color(sentenceResult.translation, TerminalPrint::FgColor::Green),
                                            BREAK_LINE);
     return result;
 }
+#else
+std::string TerminalPrint::getSentenceStr() const
+{
+    std::ostringstream result;
+    result << sentenceResult.sentence
+           << BREAK_LINE
+           << color(sentenceResult.translation, TerminalPrint::FgColor::Green)
+           << BREAK_LINE;
+    return result.str();
+}
+#endif
 
-std::string TerminalPrint::getPronunciation()
+#ifdef ENABLE_FORMAT_SUPPORT
+std::string TerminalPrint::getPronunciation() const
 {
     std::string result = "";
-    if (!wordResult.pronunciation.en.isEmpty())
+    if (!wordResult.pronunciation.en.empty())
     {
-        result += std::format("{}[{}]",
-                              QObject::tr("en").toStdString(),
-                              color(wordResult.pronunciation.en, FgColor::Green));
+        result += std::format("en[{}]", color(wordResult.pronunciation.en, FgColor::Green));
     }
-    if (!wordResult.pronunciation.en.isEmpty() && !wordResult.pronunciation.am.isEmpty())
+    if (!wordResult.pronunciation.en.empty() && !wordResult.pronunciation.am.empty())
     {
         result += INDENT;
     }
-    if (!wordResult.pronunciation.am.isEmpty())
+    if (!wordResult.pronunciation.am.empty())
     {
-        result += std::format("{}[{}]",
-                              QObject::tr("us").toStdString(),
-                              color(wordResult.pronunciation.am, FgColor::Green));
+        result += std::format("{us}[{}]", color(wordResult.pronunciation.am, FgColor::Green));
     }
     return result;
 }
+#else
+std::string TerminalPrint::getPronunciation() const
+{
+    std::ostringstream result;
+    if (!wordResult.pronunciation.en.empty())
+    {
+        result << "en[" << color(wordResult.pronunciation.en, FgColor::Green) << "]";
+    }
+    if (!wordResult.pronunciation.en.empty() && !wordResult.pronunciation.am.empty())
+    {
+        result << INDENT;
+    }
+    if (!wordResult.pronunciation.am.empty())
+    {
+        result << "us[" << color(wordResult.pronunciation.am, FgColor::Green) << "]";
+    }
+    return result.str();
+}
+#endif
 
-std::string TerminalPrint::getMeanings()
+#ifdef ENABLE_FORMAT_SUPPORT
+std::string TerminalPrint::getMeanings() const
 {
     std::vector<std::string> list;
     std::transform(wordResult.meanings.begin(), wordResult.meanings.end(), std::back_inserter(list),
-                   [this](const Model::WordResult::Meaning &meaning) {
-                       if (meaning.part.isEmpty())
+                   [this](const Model::WordResult::Meaning &meaning)
+                   {
+                       std::string meansJoined = boost::algorithm::join(meaning.means, "; ");
+                       if (meaning.part.empty())
                        {
-                           return std::format("{}", meaning.means.join("; ").toStdString());
+                           return meansJoined;
                        }
                        else [[likely]]
                        {
-                           return std::format("{} {}", color(meaning.part, FgColor::Green), meaning.means.join("; ").toStdString());
+                           return std::format("{} {}", color(meaning.part, FgColor::Green), meansJoined);
                        }
                    });
-
-    std::string meanings = std::accumulate(std::next(list.begin()), list.end(), list.begin() != list.end() ? list.front() : "",
-                                           [this](const std::string &a, const std::string &b) {
-                                               return a + BREAK_LINE + b;
-                                           });
-
-    return meanings;
+    return boost::algorithm::join(list, BREAK_LINE);
 }
+#else
+std::string TerminalPrint::getMeanings() const
+{
+    std::ostringstream result;
+    std::vector<std::string> list;
+    std::transform(wordResult.meanings.begin(), wordResult.meanings.end(), std::back_inserter(list),
+                   [this](const Model::WordResult::Meaning &meaning)
+                   {
+                       std::string meansJoined = boost::algorithm::join(meaning.means, "; ");
+                       if (meaning.part.empty())
+                       {
+                           return meansJoined;
+                       }
+                       else [[likely]]
+                       {
+                           return color(meaning.part, FgColor::Green) + " " + meansJoined;
+                       }
+                   });
+    return boost::algorithm::join(list, BREAK_LINE);
+}
+#endif
 
+#ifdef ENABLE_FORMAT_SUPPORT
 std::string TerminalPrint::color(const std::string &str, const FgColor &fgColor, const BgColor &bgColor)
 {
     return std::format("{}{}{}{}", fgColors.at(fgColor), bgColors.at(bgColor), str, COLOR_CLOSE);
 }
-
-std::string TerminalPrint::color(const QString &str, const FgColor &fgColor, const BgColor &bgColor)
+#else
+std::string TerminalPrint::color(const std::string &str, const FgColor &fgColor, const BgColor &bgColor)
 {
-    return TerminalPrint::color(str.toStdString(), fgColor, bgColor);
+    std::ostringstream result;
+    result << fgColors.at(fgColor) << bgColors.at(bgColor) << str << COLOR_CLOSE;
+    return result.str();
 }
+#endif
 
+#ifdef ENABLE_FORMAT_SUPPORT
 std::string TerminalPrint::getErrorStr(const std::string &str)
 {
     return std::format("{}{}", color(str, TerminalPrint::FgColor::Red), BREAK_LINE);
 }
-
-std::string TerminalPrint::getErrorStr(const QString &str)
+#else
+std::string TerminalPrint::getErrorStr(const std::string &str)
 {
-    return getErrorStr(str.toStdString());
+    std::ostringstream result;
+    result << color(str, TerminalPrint::FgColor::Red) << BREAK_LINE;
+    return result.str();
 }
+#endif

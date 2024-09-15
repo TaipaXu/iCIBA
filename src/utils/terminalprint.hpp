@@ -33,18 +33,13 @@ public:
     explicit TerminalPrint(const Model::SentenceResult &sentenceResult);
     ~TerminalPrint() = default;
 
-    static std::string getNetworkErrorStr();
-    static std::string getNetworkParseErrorStr();
-
 private:
-    std::string getWordStr() override;
-    std::string getSentenceStr() override;
-    std::string getPronunciation() override;
-    std::string getMeanings() override;
+    std::string getWordStr() const override;
+    std::string getSentenceStr() const override;
+    std::string getPronunciation() const override;
+    std::string getMeanings() const override;
     static std::string color(const std::string &str, const FgColor &fgColor, const BgColor &bgColor = BgColor::Normal);
-    static std::string color(const QString &str, const FgColor &fgColor, const BgColor &bgColor = BgColor::Normal);
     static std::string getErrorStr(const std::string &str);
-    static std::string getErrorStr(const QString &str);
 
     static const std::map<FgColor, std::string> fgColors;
     static const std::map<BgColor, std::string> bgColors;

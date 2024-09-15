@@ -1,19 +1,18 @@
 #include "./baseprint.hpp"
-#include <QObject>
 
 BasePrint::BasePrint(const Model::WordResult &wordResult)
-    : wordResult{wordResult},
-      type{Type::Word}
+    : type{Type::Word},
+      wordResult{wordResult}
 {
 }
 
 BasePrint::BasePrint(const Model::SentenceResult &sentenceResult)
-    : sentenceResult{sentenceResult},
-      type{Type::Sentence}
+    : type{Type::Sentence},
+      sentenceResult{sentenceResult}
 {
 }
 
-std::string BasePrint::getStr()
+std::string BasePrint::getStr() const
 {
     if (type == Type::Word)
     {
@@ -23,14 +22,4 @@ std::string BasePrint::getStr()
     {
         return getSentenceStr();
     }
-}
-
-std::string BasePrint::getNetworkErrorStr()
-{
-    return QObject::tr("Network error").toStdString();
-}
-
-std::string BasePrint::getNetworkParseErrorStr()
-{
-    return QObject::tr("Network parsing error").toStdString();
 }

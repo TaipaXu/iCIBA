@@ -1,84 +1,97 @@
 #include "./core.hpp"
 #include <iostream>
-#include <QCommandLineParser>
-#include <QCommandLineOption>
+#include <numeric>
+#include <boost/program_options.hpp>
+#include "./config.hpp"
 #include "./network.hpp"
 #include "utils/terminalprint.hpp"
-#include "models/wordresult.hpp"
-#include "models/sentenceresult.hpp"
 
-Core::Core(QObject *parent)
-    : QObject{parent}
+void Core::start(int argc, char *argv[]) const
 {
-}
+    namespace po = boost::program_options;
 
-Core::~Core()
-{
-}
+    po::options_description optionsDescription("Allowed options");
+    optionsDescription.add_options()("help,h", "Show help message")                     // help option
+        ("version,v", "Show version information")                                       // version option
+        ("query,q", po::value<std::string>(), "Translate the word or sentence")         // query option
+        ("input", po::value<std::vector<std::string>>(), "Input positional arguments"); // input positional arguments
 
-void Core::start()
-{
-    const QCommandLineOption queryOption{{"q", "query"}, "Translate the word or sentence.", "word or sentence"};
-    QCommandLineParser parser;
-    parser.addHelpOption();
-    parser.addVersionOption();
-    parser.addOption(queryOption);
+    po::positional_options_description positionalOptionsDescription;
+    positionalOptionsDescription.add("input", -1);
 
-    parser.process(*qApp);
-
-    if (parser.isSet(queryOption))
+    po::variables_map variablesMap;
+    try
     {
-        const QStringList arguments = parser.positionalArguments();
-        const QString command = parser.value(queryOption);
-        query(command + " " + arguments.join(" "));
+        po::store(po::command_line_parser(argc, argv)
+                      .options(optionsDescription)
+                      .positional(positionalOptionsDescription)
+                      .run(),
+                  variablesMap);
+        po::notify(variablesMap);
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return;
+    }
+
+    if (variablesMap.count("help"))
+    {
+        std::cout << optionsDescription << std::endl;
+    }
+    else if (variablesMap.count("version"))
+    {
+        std::cout << DISPLAY_NAME << " " << PROJECT_VERSION << std::endl;
+    }
+    else if (variablesMap.count("query"))
+    {
+        const std::string command = variablesMap["query"].as<std::string>();
+
+        std::vector<std::string> arguments;
+        if (variablesMap.count("input"))
+        {
+            arguments = variablesMap["input"].as<std::vector<std::string>>();
+        }
+
+        const std::string input = command + " " + (arguments.empty() ? "" : std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b)
+                                                                                            { return a + " " + b; }));
+
+        query(input);
+    }
+    else if (variablesMap.count("input")) [[likely]]
+    {
+        const std::vector<std::string> arguments = variablesMap["input"].as<std::vector<std::string>>();
+        const std::string input = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b)
+                                                  { return a + " " + b; });
+        query(input);
     }
     else
     {
-        const QStringList arguments = parser.positionalArguments();
-        if (arguments.isEmpty())
-        {
-            parser.showHelp();
-        }
-        else
-        {
-            query(arguments.join(" "));
-        }
+        std::cout << optionsDescription << std::endl;
     }
 }
 
-void Core::query(const QString &str)
+void Core::query(const std::string &input) const
 {
-
-    Network *network = new Network(this);
-    connect(network, &Network::translateWordResult, this, &Core::handleNetworkWord);
-    connect(network, &Network::translateSentenceResult, this, &Core::handleNetworkSentence);
-    connect(network, &Network::networkError, this, &Core::handleNetworkError);
-    connect(network, &Network::parseError, this, &Core::handleNetworkParseError);
-    network->translate(str);
-}
-
-void Core::handleNetworkWord(const Model::WordResult &wordResult)
-{
-    TerminalPrint print{wordResult};
-    std::cout << print.getStr();
-    emit done();
-}
-
-void Core::handleNetworkSentence(const Model::SentenceResult &sentenceResult)
-{
-    TerminalPrint print{sentenceResult};
-    std::cout << print.getStr();
-    emit done();
-}
-
-void Core::handleNetworkError()
-{
-    std::cout << TerminalPrint::getNetworkErrorStr();
-    emit done();
-}
-
-void Core::handleNetworkParseError()
-{
-    std::cout << TerminalPrint::getNetworkParseErrorStr();
-    emit done();
+    Network network;
+    try
+    {
+        std::variant<Model::WordResult, Model::SentenceResult> result = network.translate(input);
+        if (std::holds_alternative<Model::WordResult>(result))
+        {
+            const Model::WordResult wordResult = std::get<Model::WordResult>(result);
+            const TerminalPrint terminalPrint(wordResult);
+            std::cout << terminalPrint.getStr();
+        }
+        else
+        {
+            const Model::SentenceResult sentenceResult = std::get<Model::SentenceResult>(result);
+            TerminalPrint terminalPrint(sentenceResult);
+            std::cout << terminalPrint.getStr();
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 }

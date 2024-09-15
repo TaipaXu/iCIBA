@@ -16,19 +16,15 @@ public:
     explicit BasePrint(const Model::SentenceResult &sentenceResult);
     ~BasePrint() = default;
 
-    std::string getStr();
+    std::string getStr() const;
 
-protected:
-    static std::string getNetworkErrorStr();
-    static std::string getNetworkParseErrorStr();
-
-    Type type;
-    Model::WordResult wordResult;
-    Model::SentenceResult sentenceResult;
+    const Type type;
+    const Model::WordResult wordResult;
+    const Model::SentenceResult sentenceResult;
 
 private:
-    virtual std::string getWordStr() = 0;
-    virtual std::string getSentenceStr() = 0;
-    virtual std::string getPronunciation() = 0;
-    virtual std::string getMeanings() = 0;
+    virtual std::string getWordStr() const = 0;
+    virtual std::string getSentenceStr() const = 0;
+    virtual std::string getPronunciation() const = 0;
+    virtual std::string getMeanings() const = 0;
 };

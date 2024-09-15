@@ -1,7 +1,7 @@
 #pragma once
 
-#include <list>
-#include <QStringList>
+#include <string>
+#include <vector>
 
 namespace Model
 {
@@ -9,19 +9,19 @@ namespace Model
     {
         struct Meaning
         {
-            QString part;
-            QStringList means;
+            std::string part;
+            std::vector<std::string> means;
         };
-        using Meanings = std::list<Meaning>;
+        using Meanings = std::vector<Meaning>;
 
         struct Pronunciation
         {
-            QString en;
-            QString am;
-            QString other;
+            std::string en;
+            std::string am;
+            std::string other;
         };
 
-        QString word;
+        std::string word;
         Meanings meanings;
         Pronunciation pronunciation;
     };

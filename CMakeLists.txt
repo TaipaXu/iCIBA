@@ -1,14 +1,19 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
-project(iciba VERSION 0.2.0 LANGUAGES CXX)
+project(iciba VERSION 0.3.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+option(ENABLE_FORMAT "Enable std::format support" OFF)
+
+if(ENABLE_FORMAT)
+    message(STATUS "std::format is enabled")
+    add_compile_definitions(ENABLE_FORMAT_SUPPORT)
+    set(CMAKE_CXX_STANDARD 23)
+else()
+    message(STATUS "std::format is disabled")
+    set(CMAKE_CXX_STANDARD 20)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_CXX_FLSGS "-03 -Wall -Wextra")
 
 add_subdirectory(src)
 add_subdirectory(package)

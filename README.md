@@ -7,17 +7,19 @@ English | [中文](./README_ZH.md)
 ## Installation
 
 ```sh
-$ wget https://github.com/TaipaXu/iCIBA/releases/download/v0.2.0/iciba_0.2.0_x64.deb
-$ sudo apt-get install iciba_0.2.0_x64.deb
+wget https://github.com/TaipaXu/iCIBA/releases/download/v0.2.0/iciba_0.2.0_x64.deb
+sudo apt-get install iciba_0.2.0_x64.deb
 ```
 
 ## Compiling
 
+Before starting the compilation, please make sure you have installed [vcpkg](https://github.com/microsoft/vcpkg). Set the `VCPKG_ROOT` environment variable to point to the directory where `vcpkg` is installed. Add the `vcpkg` path to the system's `PATH` environment variable.
+
 ```sh
-$ git clone https://github.com/TaipaXu/iCIBA.git && cd iCIBA
-$ mkdir build && cd build
-$ cmake ..
-$ make -j$(nproc)
+git clone https://github.com/TaipaXu/iCIBA.git && cd iCIBA
+vcpkg install
+cmake --preset=linux-release
+cmake --build build/release -j $(nproc)
 ```
 
 ## Usage

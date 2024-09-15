@@ -1,32 +1,26 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Network)
+find_package(Boost REQUIRED COMPONENTS program_options json asio beast)
 
 configure_file(./config.hpp.in ./config.hpp)
 
 set(TARGET iciba)
 set(SOURCES
-        main.cpp
-        core.hpp
-        core.cpp
+    main.cpp
+    core.hpp
+    core.cpp
 
-        models/wordresult.hpp
-        models/sentenceresult.hpp
+    models/wordresult.hpp
+    models/sentenceresult.hpp
 
-        network.hpp
-        network.cpp
+    network.hpp
+    network.cpp
 
-        utils/baseprint.hpp
-        utils/baseprint.cpp
-        utils/terminalprint.hpp
-        utils/terminalprint.cpp
-
-        errors/systemerror.hpp
+    utils/baseprint.hpp
+    utils/baseprint.cpp
+    utils/terminalprint.hpp
+    utils/terminalprint.cpp
 )
+add_executable(${TARGET} ${SOURCES})
 
-add_executable(
-    ${TARGET}
-    ${SOURCES}
-)
+# set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
-target_link_libraries(${TARGET} PUBLIC
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(${TARGET} PRIVATE Boost::program_options Boost::json Boost::asio Boost::beast)

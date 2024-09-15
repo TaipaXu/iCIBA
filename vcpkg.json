@@ -1,0 +1,9 @@
+{
+    "dependencies": [
+        "boost-algorithm",
+        "boost-asio",
+        "boost-beast",
+        "boost-json",
+        "boost-program-options"
+    ]
+}

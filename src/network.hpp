@@ -1,33 +1,19 @@
 #pragma once
 
-#include <QObject>
+#include <string>
+#include <map>
+#include <variant>
+#include "models/wordresult.hpp"
+#include "models/sentenceresult.hpp"
 
-QT_BEGIN_NAMESPACE
-class QNetworkReply;
-QT_END_NAMESPACE
-
-namespace Model
+class Network
 {
-    struct WordResult;
-    struct SentenceResult;
-} // namespace Model
-
-class Network : public QObject
-{
-    Q_OBJECT
-
 public:
-    explicit Network(QObject *parent = nullptr);
+    Network() = default;
     ~Network() = default;
 
-    void translate(const QString &word);
+    std::variant<Model::WordResult, Model::SentenceResult> translate(const std::string &text);
 
-signals:
-    void translateWordResult(const Model::WordResult &wordResult);
-    void translateSentenceResult(const Model::SentenceResult &sentenceResult);
-    void networkError();
-    void parseError();
-
-private slots:
-    void handleTranslateResult(QNetworkReply *reply);
+private:
+    std::string makeQueryString(const std::map<std::string, std::string> &params) const;
 };
