@@ -1,0 +1,23 @@
+Source: iciba
+Section: utils
+Priority: optional
+Maintainer: Taipa Xu <taipaxu@gmail.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ make,
+ g++,
+ libboost-all-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/TaipaXu/iCIBA
+Vcs-Browser: https://github.com/TaipaXu/iCIBA
+Vcs-Git: https://github.com/TaipaXu/iCIBA.git
+
+Package: iciba
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libboost-program-options1.74.0 (>= 1.74.0)
+Description: A command-line tool of iCIBA for Linux.

@@ -1,4 +1,4 @@
-find_package(Boost REQUIRED COMPONENTS program_options json asio beast)
+find_package(Boost REQUIRED COMPONENTS program_options json)
 
 configure_file(./config.hpp.in ./config.hpp)
 
@@ -21,6 +21,4 @@ set(SOURCES
 )
 add_executable(${TARGET} ${SOURCES})
 
-# set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-
-target_link_libraries(${TARGET} PRIVATE Boost::program_options Boost::json Boost::asio Boost::beast)
+target_link_libraries(${TARGET} PRIVATE Boost::program_options Boost::json)
