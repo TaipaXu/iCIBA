@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
+
 project(iciba VERSION 0.3.0 LANGUAGES CXX)
 
 option(ENABLE_FORMAT "Enable std::format support" OFF)

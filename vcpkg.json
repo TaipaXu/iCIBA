@@ -4,6 +4,7 @@
         "boost-asio",
         "boost-beast",
         "boost-json",
-        "boost-program-options"
+        "boost-program-options",
+        "nlohmann-json"
     ]
 }

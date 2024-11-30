@@ -1,17 +1,21 @@
 #include "./network.hpp"
-#include <iostream>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#ifdef USE_BOOST_JSON
 #include <boost/json.hpp>
+namespace json = boost::json;
+#elif defined(USE_NLOHMANN_JSON)
+#include <nlohmann/json.hpp>
+using namespace nlohmann;
+#endif
 
 std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const std::string &text)
 {
     namespace beast = boost::beast;
     namespace http = beast::http;
     namespace net = boost::asio;
-    namespace json = boost::json;
     using tcp = net::ip::tcp;
 
     try
@@ -49,6 +53,7 @@ std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const 
         http::read(socket, buffer, response);
 
         const std::string body = beast::buffers_to_string(response.body().data());
+#ifdef USE_BOOST_JSON
         boost::system::error_code jsonErrorCode;
         const json::value jsonValue = json::parse(body, jsonErrorCode);
         if (jsonErrorCode)
@@ -100,6 +105,52 @@ std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const 
         {
             throw std::runtime_error("Failed to translate");
         }
+#elif defined(USE_NLOHMANN_JSON)
+        json jsonValue = json::parse(body);
+        json obj = jsonValue.at("message");
+        json baseInfo = obj.at("baesInfo");
+
+        const int type = baseInfo.at("translate_type").get<int>();
+        if (type == 1)
+        {
+            Model::WordResult wordResult;
+            wordResult.word = baseInfo.at("word_name").get<std::string>();
+
+            const json symbolsArray = baseInfo.at("symbols");
+            json jsonSymbol = symbolsArray.at(0);
+            json jsonParts = jsonSymbol.at("parts");
+
+            for (const auto &part : jsonParts)
+            {
+                json partObj = part;
+                std::vector<std::string> meanings;
+                for (const auto &mean : partObj.at("means"))
+                {
+                    meanings.push_back(mean.get<std::string>());
+                }
+                wordResult.meanings.push_back({partObj.at("part").get<std::string>(), meanings});
+            }
+
+            wordResult.pronunciation = {
+                jsonSymbol.value("ph_en", ""),
+                jsonSymbol.value("ph_am", ""),
+                jsonSymbol.value("ph_other", "")};
+
+            return wordResult;
+        }
+        else if (type == 2)
+        {
+            Model::SentenceResult sentenceResult;
+            sentenceResult.sentence = obj.at("word_name").get<std::string>();
+            sentenceResult.translation = baseInfo.at("translate_result").get<std::string>();
+
+            return sentenceResult;
+        }
+        else
+        {
+            throw std::runtime_error("Failed to translate");
+        }
+#endif
 
         beast::error_code errorCode;
         socket.shutdown(tcp::socket::shutdown_both, errorCode);
