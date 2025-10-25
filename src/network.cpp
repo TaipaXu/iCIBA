@@ -10,6 +10,10 @@ namespace json = boost::json;
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 #endif
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <cctype>
 
 std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const std::string &text)
 {
@@ -86,10 +90,24 @@ std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const 
                 wordResult.meanings.push_back({partObj["part"].as_string().c_str(), meanings});
             }
 
-            wordResult.pronunciation = {
-                jsonSymbol["ph_en"].as_string().c_str(),
-                jsonSymbol["ph_am"].as_string().c_str(),
-                jsonSymbol["ph_other"].as_string().c_str()};
+            std::string pronunciationEn = "";
+            std::string pronunciationAm = "";
+            std::string pronunciationOther = "";
+
+            if (jsonSymbol.contains("ph_en") && jsonSymbol["ph_en"].is_string())
+            {
+                pronunciationEn = jsonSymbol["ph_en"].as_string().c_str();
+            }
+            if (jsonSymbol.contains("ph_am") && jsonSymbol["ph_am"].is_string())
+            {
+                pronunciationAm = jsonSymbol["ph_am"].as_string().c_str();
+            }
+            if (jsonSymbol.contains("ph_other") && jsonSymbol["ph_other"].is_string())
+            {
+                pronunciationOther = jsonSymbol["ph_other"].as_string().c_str();
+            }
+
+            wordResult.pronunciation = {pronunciationEn, pronunciationAm, pronunciationOther};
 
             return wordResult;
         }
@@ -176,7 +194,26 @@ std::string Network::makeQueryString(const std::map<std::string, std::string> &p
         {
             query += "&";
         }
-        query += p.first + "=" + p.second;
+        query += p.first + "=" + urlEncode(p.second);
     }
     return query;
+}
+
+std::string Network::urlEncode(const std::string &str) const
+{
+    std::string encoded;
+    for (unsigned char c : str)
+    {
+        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+        {
+            encoded += c;
+        }
+        else
+        {
+            std::ostringstream oss;
+            oss << '%' << std::hex << std::uppercase << static_cast<int>(c);
+            encoded += oss.str();
+        }
+    }
+    return encoded;
 }

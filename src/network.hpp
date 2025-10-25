@@ -16,4 +16,5 @@ public:
 
 private:
     std::string makeQueryString(const std::map<std::string, std::string> &params) const;
+    std::string urlEncode(const std::string &str) const;
 };
