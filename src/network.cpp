@@ -1,4 +1,7 @@
 #include "./network.hpp"
+#include <sstream>
+#include <iomanip>
+#include <cctype>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
@@ -10,10 +13,6 @@ namespace json = boost::json;
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 #endif
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <cctype>
 
 std::variant<Model::WordResult, Model::SentenceResult> Network::translate(const std::string &text)
 {
