@@ -1,6 +1,8 @@
 #include "./core.hpp"
 #include <iostream>
+#include <cctype>
 #include <numeric>
+#include <algorithm>
 #include <boost/program_options.hpp>
 #include "./config.hpp"
 #include "./network.hpp"
@@ -53,16 +55,14 @@ void Core::start(int argc, char *argv[]) const
             arguments = variablesMap["input"].as<std::vector<std::string>>();
         }
 
-        const std::string input = command + " " + (arguments.empty() ? "" : std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b)
-                                                                                            { return a + " " + b; }));
+        const std::string input = command + " " + (arguments.empty() ? "" : std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; }));
 
         query(input);
     }
     else if (variablesMap.count("input")) [[likely]]
     {
         const std::vector<std::string> arguments = variablesMap["input"].as<std::vector<std::string>>();
-        const std::string input = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b)
-                                                  { return a + " " + b; });
+        const std::string input = std::accumulate(arguments.begin(), arguments.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
         query(input);
     }
     else
@@ -73,10 +73,24 @@ void Core::start(int argc, char *argv[]) const
 
 void Core::query(const std::string &input) const
 {
+    std::string trimmedInput = input;
+    trimmedInput.erase(trimmedInput.begin(), std::find_if(trimmedInput.begin(), trimmedInput.end(), [](unsigned char ch) {
+                           return !std::isspace(ch);
+                       }));
+    trimmedInput.erase(std::find_if(trimmedInput.rbegin(), trimmedInput.rend(), [](unsigned char ch) {
+                           return !std::isspace(ch);
+                       }).base(),
+                       trimmedInput.end());
+    if (trimmedInput.empty())
+    {
+        std::cerr << "Input is empty." << std::endl;
+        return;
+    }
+
     Network network;
     try
     {
-        std::variant<Model::WordResult, Model::SentenceResult> result = network.translate(input);
+        std::variant<Model::WordResult, Model::SentenceResult> result = network.translate(trimmedInput);
         if (std::holds_alternative<Model::WordResult>(result))
         {
             const Model::WordResult wordResult = std::get<Model::WordResult>(result);
